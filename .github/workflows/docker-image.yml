@@ -29,4 +29,4 @@ jobs:
           context: .
           file: ./runpod.Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}:latest
+          tags: ghcr.io/ai-avatar/f5-tts:latest
