@@ -253,6 +253,6 @@ def handler(job):
     text = job_input["text"]
     remove_silence = False
     audio, _ = infer(ref_audio, ref_text, text, "F5-TTS", remove_silence)
-    return audio
+    return "Success"
 
 runpod.serverless.start({"handler": handler})
