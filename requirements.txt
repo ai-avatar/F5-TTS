@@ -21,3 +21,4 @@ transformers
 vocos
 wandb
 x_transformers>=1.31.14
+runpod
