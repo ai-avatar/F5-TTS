@@ -249,7 +249,8 @@ def process_voice(ref_audio_orig, ref_text):
 ref_audio, ref_text = process_voice("tests/ref_audio/test_en_1_ref_short.wav", "Some call me nature, others call me mother nature.")
 
 def handler(job):
-    text = job["text"]
+    job_input = job["input"]
+    text = job_input["text"]
     remove_silence = False
     audio, _ = infer(ref_audio, ref_text, text, "F5-TTS", remove_silence)
     return audio

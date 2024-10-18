@@ -24,4 +24,4 @@ RUN cd F5-TTS \
 
 WORKDIR /workspace/F5-TTS
 
-CMD python3.11 -u /app.py
+CMD python3.11 -u /workspace/F5-TTS/app.py
