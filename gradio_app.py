@@ -149,18 +149,17 @@ def infer_batch(ref_audio, ref_text, gen_text_batches, exp_name, remove_silence,
     generated_waves = []
     spectrograms = []
 
+    if len(ref_text[-1].encode('utf-8')) == 1:
+        ref_text = ref_text + " "
     for i, gen_text in enumerate(progress.tqdm(gen_text_batches)):
         # Prepare the text
-        if len(ref_text[-1].encode('utf-8')) == 1:
-            ref_text = ref_text + " "
         text_list = [ref_text + gen_text]
         final_text_list = convert_char_to_pinyin(text_list)
 
         # Calculate duration
         ref_audio_len = audio.shape[-1] // hop_length
-        zh_pause_punc = r"。，、；：？！"
-        ref_text_len = len(ref_text.encode('utf-8')) + 3 * len(re.findall(zh_pause_punc, ref_text))
-        gen_text_len = len(gen_text.encode('utf-8')) + 3 * len(re.findall(zh_pause_punc, gen_text))
+        ref_text_len = len(ref_text.encode('utf-8'))
+        gen_text_len = len(gen_text.encode('utf-8'))
         duration = ref_audio_len + int(ref_audio_len / ref_text_len * gen_text_len / speed)
 
         # inference
@@ -174,6 +173,7 @@ def infer_batch(ref_audio, ref_text, gen_text_batches, exp_name, remove_silence,
                 sway_sampling_coef=sway_sampling_coef,
             )
 
+        generated = generated.to(torch.float32)
         generated = generated[:, ref_audio_len:, :]
         generated_mel_spec = rearrange(generated, "1 n d -> 1 d n")
         generated_wave = vocos.decode(generated_mel_spec.cpu())

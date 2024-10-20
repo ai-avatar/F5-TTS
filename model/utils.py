@@ -296,9 +296,8 @@ def get_inference_prompt(
             # # test vocoder resynthesis
             # ref_audio = gt_audio
         else:
-            zh_pause_punc = r"。，、；：？！"
-            ref_text_len = len(prompt_text.encode('utf-8')) + 3 * len(re.findall(zh_pause_punc, prompt_text))
-            gen_text_len = len(gt_text.encode('utf-8')) + 3 * len(re.findall(zh_pause_punc, gt_text))
+            ref_text_len = len(prompt_text.encode('utf-8'))
+            gen_text_len = len(gt_text.encode('utf-8'))
             total_mel_len = ref_mel_len + int(ref_mel_len / ref_text_len * gen_text_len / speed)
 
         # to mel spectrogram
@@ -558,23 +557,23 @@ def repetition_found(text, length = 2, tolerance = 10):
 # load model checkpoint for inference
 
 def load_checkpoint(model, ckpt_path, device, use_ema = True):
-    from ema_pytorch import EMA
+    model = model.half()
 
     ckpt_type = ckpt_path.split(".")[-1]
     if ckpt_type == "safetensors":
         from safetensors.torch import load_file
-        checkpoint = load_file(ckpt_path, device=device)
+        checkpoint = load_file(ckpt_path)
     else:
-        checkpoint = torch.load(ckpt_path, weights_only=True, map_location=device)
+        checkpoint = torch.load(ckpt_path, weights_only=True)
 
-    if use_ema == True:
-        ema_model = EMA(model, include_online_model = False).to(device)
+    if use_ema:
         if ckpt_type == "safetensors":
-            ema_model.load_state_dict(checkpoint)
-        else:
-            ema_model.load_state_dict(checkpoint['ema_model_state_dict'])
-        ema_model.copy_params_from_ema_to_model()
-    else:
+            checkpoint = {'ema_model_state_dict': checkpoint}
+        checkpoint['model_state_dict'] = {k.replace("ema_model.", ""): v for k, v in checkpoint['ema_model_state_dict'].items() if k not in ["initted", "step"]}
         model.load_state_dict(checkpoint['model_state_dict'])
-        
-    return model
+    else:
+        if ckpt_type == "safetensors":
+            checkpoint = {'model_state_dict': checkpoint}
+        model.load_state_dict(checkpoint['model_state_dict'])
+
+    return model.to(device)
