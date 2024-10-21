@@ -17,6 +17,13 @@ from model.utils import (
 import soundfile as sf
 import runpod
 import tqdm
+import boto3
+import io
+import os
+
+S3_ENDPOINT = os.getenv('S3_ENDPOINT')
+S3_ACCESS_KEY = os.getenv('S3_ACCESS_KEY')
+S3_SECRET_KEY = os.getenv('S3_SECRET_KEY')
 
 device = (
     "cuda"
@@ -251,9 +258,21 @@ ref_audio, ref_text = process_voice("tests/ref_audio/test_en_1_ref_short.wav", "
 
 def handler(job):
     job_input = job["input"]
+    file_name = job_input["file_name"]
     text = job_input["text"]
     remove_silence = False
     audio, _ = infer(ref_audio, ref_text, text, "F5-TTS", remove_silence)
+
+    buffer = io.BytesIO()
+    sf.write(buffer, audio, samplerate=target_sample_rate, format='wav')
+    buffer.seek(0)
+
+    s3 = boto3.client('s3',
+        endpoint_url = S3_ENDPOINT,
+        aws_access_key_id = S3_ACCESS_KEY,
+        aws_secret_access_key = S3_SECRET_KEY
+    )
+    s3.upload_fileobj(buffer, "output", file_name)
     return "Success"
 
 runpod.serverless.start({"handler": handler})
