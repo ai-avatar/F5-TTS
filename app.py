@@ -272,7 +272,7 @@ def handler(job):
         aws_access_key_id = S3_ACCESS_KEY,
         aws_secret_access_key = S3_SECRET_KEY
     )
-    s3.upload_fileobj(buffer, "output", file_name)
+    s3.upload_fileobj(buffer, "podcasts", file_name)
     return "Success"
 
 runpod.serverless.start({"handler": handler})
