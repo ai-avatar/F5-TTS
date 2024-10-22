@@ -253,8 +253,8 @@ def process_voice(aseg, ref_text):
 
     return ref_audio, ref_text
 
-ref_audio1, ref_text1 = process_voice(AudioSegment.from_file("ref_audio/w01.wav"), "First we thought the PC was a calculator. Then we found out how to turn numbers into letters and we thought it was a typewriter.")
-ref_audio2, ref_text2 = process_voice(AudioSegment.from_file("ref_audio/m01.wav"), "First we thought the PC was a calculator. Then we found out how to turn numbers into letters and we thought it was a typewriter.")
+ref_audio1, ref_text1 = process_voice(AudioSegment.from_file("ref_audio/w01.mp3"), "First we thought the PC was a calculator. Then we found out how to turn numbers into letters and we thought it was a typewriter.")
+ref_audio2, ref_text2 = process_voice(AudioSegment.from_file("ref_audio/m01.mp3"), "First we thought the PC was a calculator. Then we found out how to turn numbers into letters and we thought it was a typewriter.")
 
 def handler(job):
     job_input = job["input"]
