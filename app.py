@@ -260,9 +260,9 @@ def handler(job):
     job_input = job["input"]
     file_name = job_input["file_name"]
     text = job_input["text"]
-    speaker = job_input["speaker"]
-    ref_audio = job_input["ref_audio"]
-    ref_text = job_input["ref_text"]
+    speaker = job_input.get("speaker")
+    ref_audio = job_input.get("ref_audio")
+    ref_text = job_input.get("ref_text")
 
     custom_ref_audio = False
     if ref_audio and ref_text:
