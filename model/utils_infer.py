@@ -19,8 +19,8 @@ from model.utils import (
     convert_char_to_pinyin,
 )
 
+
 device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
-print(f"Using {device} device")
 
 vocos = Vocos.from_pretrained("charactr/vocos-mel-24khz")
 
@@ -96,7 +96,6 @@ asr_pipe = None
 
 def initialize_asr_pipeline(device=device):
     global asr_pipe
-
     asr_pipe = pipeline(
         "automatic-speech-recognition",
         model="openai/whisper-large-v3-turbo",
@@ -202,6 +201,7 @@ def infer_process(
     sway_sampling_coef=sway_sampling_coef,
     speed=speed,
     fix_duration=fix_duration,
+    device=device,
 ):
     # Split the input text into batches
     audio, sr = torchaudio.load(ref_audio)
@@ -224,6 +224,7 @@ def infer_process(
         sway_sampling_coef=sway_sampling_coef,
         speed=speed,
         fix_duration=fix_duration,
+        device=device,
     )
 
 
@@ -243,6 +244,7 @@ def infer_batch_process(
     sway_sampling_coef=-1,
     speed=1,
     fix_duration=None,
+    device=None,
 ):
     audio, sr = ref_audio
     if audio.shape[0] > 1:
