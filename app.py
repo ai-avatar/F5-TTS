@@ -20,6 +20,7 @@ import tqdm
 import boto3
 import io
 import os
+import requests
 
 S3_ENDPOINT = os.getenv('S3_ENDPOINT')
 S3_ACCESS_KEY = os.getenv('S3_ACCESS_KEY')
@@ -234,11 +235,9 @@ def infer(ref_audio, ref_text, gen_text, model, remove_silence, cross_fade_durat
     print(f"Generating audio using {model} in {len(gen_text_batches)} batches")
     return infer_batch((audio, sr), ref_text, gen_text_batches, model, remove_silence, cross_fade_duration)
 
-def process_voice(ref_audio_orig, ref_text):
+def process_voice(aseg, ref_text):
     print("Converting audio...")
     with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as f:
-        aseg = AudioSegment.from_file(ref_audio_orig)
-
         non_silent_segs = silence.split_on_silence(aseg, min_silence_len=1000, silence_thresh=-50, keep_silence=1000)
         non_silent_wave = AudioSegment.silent(duration=0)
         for non_silent_seg in non_silent_segs:
@@ -254,12 +253,28 @@ def process_voice(ref_audio_orig, ref_text):
 
     return ref_audio, ref_text
 
-ref_audio, ref_text = process_voice("tests/ref_audio/test_en_1_ref_short.wav", "Some call me nature, others call me mother nature.")
+ref_audio1, ref_text1 = process_voice(AudioSegment.from_file("ref_audio/w01.wav"), "Life's a journey, so embrace every moment with an open heart.")
+ref_audio2, ref_text2 = process_voice(AudioSegment.from_file("ref_audio/m01.wav"), "Life's a journey, so embrace every moment with an open heart.")
 
 def handler(job):
     job_input = job["input"]
     file_name = job_input["file_name"]
     text = job_input["text"]
+    speaker = job_input["speaker"]
+    ref_audio = job_input["ref_audio"]
+    ref_text = job_input["ref_text"]
+
+    custom_ref_audio = False
+    if ref_audio and ref_text:
+        res = requests.get(ref_audio)
+        ref_audio = AudioSegment.from_file(io.BytesIO(res.content))
+        ref_audio, ref_text = process_voice(ref_audio, ref_text)
+        custom_ref_audio = True
+    elif speaker == "w01":
+        ref_audio, ref_text = ref_audio1, ref_text1
+    else:
+        ref_audio, ref_text = ref_audio2, ref_text2
+
     remove_silence = False
     audio, _ = infer(ref_audio, ref_text, text, "F5-TTS", remove_silence)
 
@@ -273,6 +288,10 @@ def handler(job):
         aws_secret_access_key = S3_SECRET_KEY
     )
     s3.upload_fileobj(buffer, "podcasts", file_name)
+
+    if custom_ref_audio:
+        os.remove(ref_audio)
+
     return "Success"
 
 runpod.serverless.start({"handler": handler})
