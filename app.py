@@ -278,6 +278,8 @@ def handler(job):
     remove_silence = False
     audio, _ = infer(ref_audio, ref_text, text, "F5-TTS", remove_silence)
 
+    duration = len(audio) / target_sample_rate
+
     buffer = io.BytesIO()
     sf.write(buffer, audio, samplerate=target_sample_rate, format='wav')
     buffer.seek(0)
@@ -292,6 +294,8 @@ def handler(job):
     if custom_ref_audio:
         os.remove(ref_audio)
 
-    return "Success"
+    return {
+        "duration": duration
+    }
 
 runpod.serverless.start({"handler": handler})
