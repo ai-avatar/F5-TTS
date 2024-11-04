@@ -83,6 +83,8 @@ F5TTS_ema_model = load_model(
     "F5-TTS", "F5TTS_Base", DiT, F5TTS_model_cfg, 1200000
 )
 
+ema_model = load_model("F5-TTS", "F5TTS_Base", DiT, F5TTS_model_cfg, 1200000)
+
 def chunk_text(text, max_chars=135):
     """
     Splits the input text into chunks, each with a maximum number of characters.
@@ -113,9 +115,6 @@ def chunk_text(text, max_chars=135):
     return chunks
 
 def infer_batch(ref_audio, ref_text, gen_text_batches, model, remove_silence, cross_fade_duration=0.15):
-    if model == "F5-TTS":
-        ema_model = load_model(model, "F5TTS_Base", DiT, F5TTS_model_cfg, 1200000)
-
     audio, sr = ref_audio
     if audio.shape[0] > 1:
         audio = torch.mean(audio, dim=0, keepdim=True)
